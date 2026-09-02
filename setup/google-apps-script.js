@@ -12,7 +12,19 @@
  * 6. Copy the deployment URL and add it to .env.local as NEXT_PUBLIC_GOOGLE_SHEETS_URL
  */
 
+function doGet() {
+  return ContentService
+    .createTextOutput("Use POST to submit form data.")
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
 function doPost(e) {
+  if (!e || !e.postData) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ error: "No data received" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = JSON.parse(e.postData.contents);
 
