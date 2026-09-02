@@ -6,10 +6,11 @@ interface RadioGroupProps {
   options: QuestionOption[];
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   name: string;
 }
 
-export default function RadioGroup({ options, value, onChange, name }: RadioGroupProps) {
+export default function RadioGroup({ options, value, onChange, onBlur, name }: RadioGroupProps) {
   return (
     <div className="space-y-2">
       {options.map((option) => (
@@ -27,6 +28,7 @@ export default function RadioGroup({ options, value, onChange, name }: RadioGrou
             value={option.value}
             checked={value === option.value}
             onChange={() => onChange(option.value)}
+            onBlur={onBlur}
             className="sr-only"
           />
           <div

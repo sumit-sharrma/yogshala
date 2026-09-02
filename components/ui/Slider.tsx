@@ -3,12 +3,13 @@
 interface SliderProps {
   value: number;
   onChange: (value: number) => void;
+  onBlur?: () => void;
   min: number;
   max: number;
   step: number;
 }
 
-export default function Slider({ value, onChange, min, max, step }: SliderProps) {
+export default function Slider({ value, onChange, onBlur, min, max, step }: SliderProps) {
   const getLabel = (val: number) => {
     if (min === 0 && max === 10) {
       if (val === 0) return "No Pain";
@@ -34,6 +35,7 @@ export default function Slider({ value, onChange, min, max, step }: SliderProps)
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onBlur={onBlur}
         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
       />
       <div className="text-center text-sm text-gray-500">{getLabel(value)}</div>

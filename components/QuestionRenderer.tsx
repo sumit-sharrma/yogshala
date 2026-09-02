@@ -12,6 +12,7 @@ interface QuestionRendererProps {
   question: Question;
   formData: FormData;
   onChange: (id: string, value: string | number | string[]) => void;
+  onBlur?: (id: string) => void;
   error?: string;
 }
 
@@ -35,10 +36,11 @@ function isQuestionVisible(question: Question, formData: FormData): boolean {
   return answer === value;
 }
 
-export default function QuestionRenderer({ question, formData, onChange, error }: QuestionRendererProps) {
+export default function QuestionRenderer({ question, formData, onChange, onBlur, error }: QuestionRendererProps) {
   if (!isQuestionVisible(question, formData)) return null;
 
   const currentValue = formData[question.id];
+  const blur = () => onBlur?.(question.id);
 
   return (
     <div className="mb-6">
@@ -54,6 +56,7 @@ export default function QuestionRenderer({ question, formData, onChange, error }
         <TextInput
           value={(currentValue as string) || ""}
           onChange={(v) => onChange(question.id, v)}
+          onBlur={blur}
           placeholder={question.placeholder}
         />
       )}
@@ -62,6 +65,7 @@ export default function QuestionRenderer({ question, formData, onChange, error }
         <TextArea
           value={(currentValue as string) || ""}
           onChange={(v) => onChange(question.id, v)}
+          onBlur={blur}
           placeholder={question.placeholder}
         />
       )}
@@ -70,6 +74,7 @@ export default function QuestionRenderer({ question, formData, onChange, error }
         <TextInput
           value={(currentValue as number)?.toString() || ""}
           onChange={(v) => onChange(question.id, Number(v))}
+          onBlur={blur}
           type="number"
           placeholder={question.placeholder}
         />
@@ -80,6 +85,7 @@ export default function QuestionRenderer({ question, formData, onChange, error }
           options={question.options}
           value={(currentValue as string) || ""}
           onChange={(v) => onChange(question.id, v)}
+          onBlur={blur}
           name={question.id}
         />
       )}
@@ -89,6 +95,7 @@ export default function QuestionRenderer({ question, formData, onChange, error }
           options={question.options}
           value={(currentValue as string[]) || []}
           onChange={(v) => onChange(question.id, v)}
+          onBlur={blur}
         />
       )}
 
@@ -96,6 +103,7 @@ export default function QuestionRenderer({ question, formData, onChange, error }
         <Slider
           value={(currentValue as number) ?? question.min ?? 0}
           onChange={(v) => onChange(question.id, v)}
+          onBlur={blur}
           min={question.min ?? 0}
           max={question.max ?? 10}
           step={question.step ?? 1}
@@ -106,6 +114,7 @@ export default function QuestionRenderer({ question, formData, onChange, error }
         <DatePicker
           value={(currentValue as string) || ""}
           onChange={(v) => onChange(question.id, v)}
+          onBlur={blur}
         />
       )}
     </div>

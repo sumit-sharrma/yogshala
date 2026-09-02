@@ -9,63 +9,94 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import ProgressBar from "./ui/ProgressBar";
 import QuestionRenderer from "./QuestionRenderer";
 
+interface QuestionLike {
+  id: string;
+  label: string;
+  required?: boolean;
+  dependsOn?: {
+    questionId: string;
+    value: string | string[];
+  };
+}
+
 export default function FormWizard() {
   const router = useRouter();
   const [currentSection, setCurrentSection] = useState(0);
   const [formData, setFormData] = useState<FormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFinal, setShowFinal] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const { clearSaved } = useAutoSave(formData, setFormData);
 
   const handleChange = useCallback((id: string, value: string | number | string[]) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
   }, []);
 
-  const isVisible = (q: (typeof formSections)[number]["questions"][number]) => {
-    if (!q.dependsOn) return true;
-    const { questionId, value } = q.dependsOn;
-    const answer = formData[questionId];
-    if (Array.isArray(answer)) {
-      if (Array.isArray(value)) return value.some((v) => answer.includes(v));
-      return answer.includes(value);
-    }
-    if (Array.isArray(value)) return value.includes(answer as string);
-    return answer === value;
+  const handleBlur = useCallback((id: string) => {
+    setTouched((prev) => ({ ...prev, [id]: true }));
+  }, []);
+
+  const isVisible = useCallback(
+    (q: QuestionLike) => {
+      if (!q.dependsOn) return true;
+      const { questionId, value } = q.dependsOn;
+      const answer = formData[questionId];
+      if (Array.isArray(answer)) {
+        if (Array.isArray(value)) return value.some((v) => answer.includes(v));
+        return answer.includes(value);
+      }
+      if (Array.isArray(value)) return value.includes(answer as string);
+      return answer === value;
+    },
+    [formData]
+  );
+
+  const hasValue = (q: QuestionLike) => {
+    const val = formData[q.id];
+    return Array.isArray(val) ? val.length > 0 : val !== undefined && val !== "" && val !== null;
   };
 
-  const validateSection = (sectionIndex: number): string[] => {
-    const section = formSections[sectionIndex];
-    const missing: string[] = [];
-    for (const q of section.questions) {
-      if (!q.required || !isVisible(q)) continue;
-      const val = formData[q.id];
-      const hasValue =
-        Array.isArray(val)
-          ? val.length > 0
-          : val !== undefined && val !== "" && val !== null;
-      if (!hasValue) missing.push(q.label);
-    }
-    return missing;
+  // Returns error message for a field (only when touched & invalid), or undefined
+  const getError = (q: QuestionLike): string | undefined => {
+    if (!q.required || !isVisible(q)) return undefined;
+    if (!touched[q.id]) return undefined;
+    return hasValue(q) ? undefined : "This field is required";
+  };
+
+  const validateAllVisible = () => {
+    const invalid: Record<string, string> = {};
+    const sections = [...formSections];
+    sections.forEach((section) => {
+      section.questions.forEach((q) => {
+        if (q.required && isVisible(q) && !hasValue(q)) {
+          invalid[q.id] = "This field is required";
+        }
+      });
+    });
+    return invalid;
+  };
+
+  const markSectionTouched = (sectionIndex: number) => {
+    setTouched((prev) => {
+      const next = { ...prev };
+      formSections[sectionIndex].questions.forEach((q) => {
+        if (isVisible(q)) next[q.id] = true;
+      });
+      return next;
+    });
   };
 
   const handleNext = () => {
-    const missing = validateSection(currentSection);
-    if (missing.length > 0) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        for (const label of missing) {
-          next[label] = "This field is required";
-        }
-        return next;
-      });
-      alert(`Please complete the following required field(s):\n\n${missing.join("\n")}`);
+    markSectionTouched(currentSection);
+    // Recompute validation for current section
+    const section = formSections[currentSection];
+    const hasInvalid = section.questions.some(
+      (q) => q.required && isVisible(q) && !hasValue(q)
+    );
+
+    if (hasInvalid) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
@@ -88,6 +119,17 @@ export default function FormWizard() {
   };
 
   const handleSubmit = async () => {
+    const invalid = validateAllVisible();
+    if (Object.keys(invalid).length > 0) {
+      setTouched((prev) => {
+        const next = { ...prev };
+        for (const id of Object.keys(invalid)) next[id] = true;
+        return next;
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     setIsSubmitting(true);
     const success = await submitForm(formData);
     if (success) {
@@ -119,6 +161,8 @@ export default function FormWizard() {
                 question={finalQuestion}
                 formData={formData}
                 onChange={handleChange}
+                onBlur={handleBlur}
+                error={getError(finalQuestion)}
               />
             </>
           ) : (
@@ -130,7 +174,8 @@ export default function FormWizard() {
                   question={question}
                   formData={formData}
                   onChange={handleChange}
-                  error={errors[question.label]}
+                  onBlur={handleBlur}
+                  error={getError(question)}
                 />
               ))}
             </>

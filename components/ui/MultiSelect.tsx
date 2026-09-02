@@ -6,9 +6,10 @@ interface MultiSelectProps {
   options: QuestionOption[];
   value: string[];
   onChange: (value: string[]) => void;
+  onBlur?: () => void;
 }
 
-export default function MultiSelect({ options, value, onChange }: MultiSelectProps) {
+export default function MultiSelect({ options, value, onChange, onBlur }: MultiSelectProps) {
   const toggle = (optionValue: string) => {
     if (value.includes(optionValue)) {
       onChange(value.filter((v) => v !== optionValue));
@@ -32,6 +33,7 @@ export default function MultiSelect({ options, value, onChange }: MultiSelectPro
             type="checkbox"
             checked={value.includes(option.value)}
             onChange={() => toggle(option.value)}
+            onBlur={onBlur}
             className="sr-only"
           />
           <div
