@@ -15,14 +15,60 @@ export default function FormWizard() {
   const [formData, setFormData] = useState<FormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFinal, setShowFinal] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { clearSaved } = useAutoSave(formData, setFormData);
 
   const handleChange = useCallback((id: string, value: string | number | string[]) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   }, []);
 
+  const isVisible = (q: (typeof formSections)[number]["questions"][number]) => {
+    if (!q.dependsOn) return true;
+    const { questionId, value } = q.dependsOn;
+    const answer = formData[questionId];
+    if (Array.isArray(answer)) {
+      if (Array.isArray(value)) return value.some((v) => answer.includes(v));
+      return answer.includes(value);
+    }
+    if (Array.isArray(value)) return value.includes(answer as string);
+    return answer === value;
+  };
+
+  const validateSection = (sectionIndex: number): string[] => {
+    const section = formSections[sectionIndex];
+    const missing: string[] = [];
+    for (const q of section.questions) {
+      if (!q.required || !isVisible(q)) continue;
+      const val = formData[q.id];
+      const hasValue =
+        Array.isArray(val)
+          ? val.length > 0
+          : val !== undefined && val !== "" && val !== null;
+      if (!hasValue) missing.push(q.label);
+    }
+    return missing;
+  };
+
   const handleNext = () => {
+    const missing = validateSection(currentSection);
+    if (missing.length > 0) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        for (const label of missing) {
+          next[label] = "This field is required";
+        }
+        return next;
+      });
+      alert(`Please complete the following required field(s):\n\n${missing.join("\n")}`);
+      return;
+    }
+
     if (currentSection < formSections.length - 1) {
       setCurrentSection((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -84,6 +130,7 @@ export default function FormWizard() {
                   question={question}
                   formData={formData}
                   onChange={handleChange}
+                  error={errors[question.label]}
                 />
               ))}
             </>

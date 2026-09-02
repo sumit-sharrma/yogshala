@@ -12,6 +12,7 @@ interface QuestionRendererProps {
   question: Question;
   formData: FormData;
   onChange: (id: string, value: string | number | string[]) => void;
+  error?: string;
 }
 
 function isQuestionVisible(question: Question, formData: FormData): boolean {
@@ -34,7 +35,7 @@ function isQuestionVisible(question: Question, formData: FormData): boolean {
   return answer === value;
 }
 
-export default function QuestionRenderer({ question, formData, onChange }: QuestionRendererProps) {
+export default function QuestionRenderer({ question, formData, onChange, error }: QuestionRendererProps) {
   if (!isQuestionVisible(question, formData)) return null;
 
   const currentValue = formData[question.id];
@@ -45,6 +46,9 @@ export default function QuestionRenderer({ question, formData, onChange }: Quest
         {question.label}
         {question.required && <span className="text-red-500 ml-1">*</span>}
       </label>
+      {error && (
+        <p className="text-sm text-red-600 mb-2">{error}</p>
+      )}
 
       {question.type === "text" && (
         <TextInput
