@@ -1,9 +1,27 @@
 import { FormSection } from "./types";
 
+export function isValidEmail(value: string | number | string[] | undefined): boolean {
+  if (typeof value !== "string" || !value.trim()) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
+}
+
+export function emailValidator(value: string | number | string[] | undefined): string | undefined {
+  if (value === undefined || value === "" || (typeof value === "string" && !value.trim())) return undefined;
+  return isValidEmail(value) ? undefined : "Please enter a valid email address (e.g. name@example.com)";
+}
+
+export function phoneValidator(value: string | number | string[] | undefined): string | undefined {
+  if (value === undefined || value === "" || (typeof value === "string" && !value.trim())) return undefined;
+  const digits = String(value).replace(/\D/g, "");
+  if (digits.length < 7 || digits.length > 15) return "Please enter a valid phone number (7–15 digits)";
+  return undefined;
+}
+
 export const formSections: FormSection[] = [
   {
     id: "personal-info",
     title: "Basic Information",
+    subtitle: "We use this to tailor the session to your body and daily routine.",
     questions: [
       { id: "fullName", label: "Name", type: "text", required: true },
       { id: "age", label: "Age", type: "number", required: true, min: 1, max: 120 },
@@ -18,6 +36,14 @@ export const formSections: FormSection[] = [
           { label: "Prefer not to say", value: "prefer-not-to-say" },
           { label: "Other", value: "other" },
         ],
+      },
+      {
+        id: "genderOther",
+        label: "Please specify your gender",
+        type: "text",
+        placeholder: "Your gender...",
+        required: true,
+        dependsOn: { questionId: "gender", value: "other" },
       },
       { id: "occupation", label: "Occupation", type: "text", required: true },
       {
@@ -46,22 +72,35 @@ export const formSections: FormSection[] = [
         ],
       },
       {
+        id: "lifestyleOther",
+        label: "Please describe your lifestyle",
+        type: "textarea",
+        placeholder: "Tell us more about your work/lifestyle...",
+        required: true,
+        dependsOn: { questionId: "lifestyle", value: "other" },
+      },
+      {
         id: "email",
         label: "What is your email id?",
         type: "text",
         placeholder: "you@example.com",
+        required: true,
+        validate: emailValidator,
       },
       {
         id: "phone",
         label: "What is your phone number?",
         type: "text",
         placeholder: "e.g. +91 98765 43210",
+        required: true,
+        validate: phoneValidator,
       },
     ],
   },
   {
     id: "main-problem",
     title: "Main Problem",
+    subtitle: "This helps us put your main concern at the centre of the session.",
     questions: [
       {
         id: "mainConcern",
@@ -83,6 +122,7 @@ export const formSections: FormSection[] = [
         label: "Please specify your main problem",
         type: "textarea",
         placeholder: "Tell us in your own words...",
+        required: true,
         dependsOn: { questionId: "mainConcern", value: "other" },
       },
       // {
@@ -156,6 +196,7 @@ export const formSections: FormSection[] = [
   {
     id: "pain-triggers",
     title: "What Makes It Worse or Better",
+    subtitle: "Knowing what eases or worsens pain helps us choose safe movements.",
     questions: [
       {
         id: "painWorse",
@@ -176,6 +217,14 @@ export const formSections: FormSection[] = [
           questionId: "mainConcern",
           value: ["upper-back", "lower-back"],
         },
+      },
+      {
+        id: "painWorseOther",
+        label: "What other activities increase your pain?",
+        type: "textarea",
+        placeholder: "Tell us in your own words...",
+        required: true,
+        dependsOn: { questionId: "painWorse", value: "other" },
       },
       {
         id: "painBetter",
@@ -211,6 +260,7 @@ export const formSections: FormSection[] = [
   {
     id: "neck-pain",
     title: "Neck Pain – Quick Questions",
+    subtitle: "Where and how your neck pain behaves helps us plan safe movement.",
     dependsOn: { questionId: "mainConcern", value: "neck" },
     questions: [
       {
@@ -262,6 +312,7 @@ export const formSections: FormSection[] = [
   {
     id: "shoulder-pain",
     title: "Shoulder Pain – Quick Questions",
+    subtitle: "Every shoulder moves differently — these details tell us what to avoid.",
     dependsOn: { questionId: "mainConcern", value: "shoulder" },
     questions: [
       {
@@ -314,6 +365,7 @@ export const formSections: FormSection[] = [
   {
     id: "back-pain",
     title: "Back Pain – Quick Questions",
+    subtitle: "Pinpointing where and when it hurts keeps your assessment safe.",
     dependsOn: { questionId: "mainConcern", value: ["upper-back", "lower-back"] },
     questions: [
       {
@@ -363,6 +415,7 @@ export const formSections: FormSection[] = [
   {
     id: "knee-pain",
     title: "Knee Pain – Quick Questions",
+    subtitle: "When and how your knee reacts helps us choose the right poses.",
     dependsOn: { questionId: "mainConcern", value: "knee" },
     questions: [
       {
@@ -404,6 +457,7 @@ export const formSections: FormSection[] = [
   {
     id: "medical-goals",
     title: "Medical Questions & Goals",
+    subtitle: "Your safety comes first — we tailor everything to your goals.",
     questions: [
       {
         id: "medicalHistory",
@@ -440,6 +494,14 @@ export const formSections: FormSection[] = [
           { label: "Move without fear", value: "move-without-fear" },
           { label: "Other", value: "other" },
         ],
+      },
+      {
+        id: "mainGoalOther",
+        label: "Please describe your main goal",
+        type: "textarea",
+        placeholder: "Tell us what you'd like to achieve...",
+        required: true,
+        dependsOn: { questionId: "mainGoal", value: "other" },
       },
     ],
   },

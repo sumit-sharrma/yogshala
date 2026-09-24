@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FormData, Question } from "@/lib/types";
+import { FormData, Question, FormSection } from "@/lib/types";
 import { formSections, disclaimerQuestion, finalQuestion } from "@/lib/formSchema";
 import { isNodeVisible } from "@/lib/visibility";
 import { submitForm } from "@/lib/submitForm";
@@ -15,81 +15,98 @@ interface FormWizardProps {
   scrollSectionId?: string;
 }
 
+type Step = {
+  base: Question;
+  section: FormSection;
+  followUps: Question[];
+};
+
 export default function FormWizard({ embedded = false, scrollSectionId }: FormWizardProps) {
   const router = useRouter();
-  const [currentSection, setCurrentSection] = useState(0);
+  const [stepIndex, setStepIndex] = useState(0);
   const [formData, setFormData] = useState<FormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFinal, setShowFinal] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [savedFlash, setSavedFlash] = useState(false);
+  const saveFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { clearSaved } = useAutoSave(formData, setFormData);
 
   const handleChange = useCallback((id: string, value: string | number | string[]) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
+    setSavedFlash(true);
+    if (saveFlashTimer.current) clearTimeout(saveFlashTimer.current);
+    saveFlashTimer.current = setTimeout(() => setSavedFlash(false), 1600);
   }, []);
 
   const handleBlur = useCallback((id: string) => {
     setTouched((prev) => ({ ...prev, [id]: true }));
   }, []);
+const visibleSections = formSections.filter((s) => isNodeVisible(s, formData));
 
-  const isVisible = useCallback(
-    (q: Question) => isNodeVisible(q, formData),
-    [formData]
-  );
+  const steps: Step[] = [];
+  for (const section of visibleSections) {
+    for (const q of section.questions) {
+      if (!isNodeVisible(q, formData)) continue;
 
-  const visibleSections = formSections.filter((s) => isNodeVisible(s, formData));
-  const sectionIndex = Math.min(currentSection, visibleSections.length - 1);
+      const dep = q.dependsOn?.questionId;
+      if (dep) {
+        const target = steps.find((s) => s.base.id === dep);
+        if (target) {
+          target.followUps.push(q);
+        } else {
+          steps.push({ base: q, section, followUps: [] });
+        }
+      } else {
+        steps.push({ base: q, section, followUps: [] });
+      }
+    }
+  }
+  const clampedIndex = Math.min(stepIndex, Math.max(steps.length - 1, 0));
+  const current = steps[clampedIndex];
+  const currentQuestions = current ? [current.base, ...current.followUps] : [];
 
   const hasValue = (q: Question) => {
     const val = formData[q.id];
     return Array.isArray(val) ? val.length > 0 : val !== undefined && val !== "" && val !== null;
   };
 
-  // Returns error message for a field (only when touched & invalid), or undefined
   const getError = (q: Question): string | undefined => {
-    if (!q.required || !isVisible(q)) return undefined;
     if (!touched[q.id]) return undefined;
-    return hasValue(q) ? undefined : "This field is required";
+    const val = formData[q.id];
+    if (q.required && !hasValue(q)) return "This field is required";
+    return q.validate?.(val);
   };
 
-  const validateAllVisible = () => {
-    const invalid: Record<string, string> = {};
-    visibleSections.forEach((section) => {
-      section.questions.forEach((q) => {
-        if (q.required && isVisible(q) && !hasValue(q)) {
-          invalid[q.id] = "This field is required";
-        }
-      });
-    });
-    return invalid;
-  };
-
-  const markSectionTouched = (sectionIndex: number) => {
-    setTouched((prev) => {
-      const next = { ...prev };
-      visibleSections[sectionIndex].questions.forEach((q) => {
-        if (isVisible(q)) next[q.id] = true;
-      });
-      return next;
-    });
+  const scrollToTop = () => {
+    if (embedded && scrollSectionId) {
+      document.getElementById(scrollSectionId)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleNext = () => {
-    markSectionTouched(sectionIndex);
-    // Recompute validation for current section
-    const section = visibleSections[sectionIndex];
-    const hasInvalid = section.questions.some(
-      (q) => q.required && isVisible(q) && !hasValue(q)
-    );
+    if (showFinal) return;
+    const step = steps[clampedIndex];
+    if (!step) return;
 
-    if (hasInvalid) {
+    const all = [step.base, ...step.followUps].filter((q) => isNodeVisible(q, formData));
+    const invalid = all.find((q) => {
+      const val = formData[q.id];
+      if (q.required && !hasValue(q)) return true;
+      return !!q.validate?.(val);
+    });
+
+    if (invalid) {
+      setTouched((prev) => ({ ...prev, [invalid.id]: true }));
       scrollToTop();
       return;
     }
 
-    if (sectionIndex < visibleSections.length - 1) {
-      setCurrentSection((prev) => prev + 1);
+    if (clampedIndex < steps.length - 1) {
+      setStepIndex(clampedIndex + 1);
       scrollToTop();
     } else {
       setShowFinal(true);
@@ -100,10 +117,35 @@ export default function FormWizard({ embedded = false, scrollSectionId }: FormWi
   const handleBack = () => {
     if (showFinal) {
       setShowFinal(false);
-    } else if (sectionIndex > 0) {
-      setCurrentSection((prev) => prev - 1);
+    } else if (clampedIndex > 0) {
+      setStepIndex(clampedIndex - 1);
       scrollToTop();
     }
+  };
+
+  // Clean up pending save-flash timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveFlashTimer.current) clearTimeout(saveFlashTimer.current);
+    };
+  }, []);
+
+  const validateAllVisible = () => {
+    const invalid: Record<string, string> = {};
+    steps.forEach(({ base, followUps }) => {
+      [base, ...followUps]
+        .filter((q) => isNodeVisible(q, formData))
+        .forEach((q) => {
+          const val = formData[q.id];
+          if (q.required && !hasValue(q)) {
+            invalid[q.id] = "This field is required";
+          } else if (q.validate) {
+            const msg = q.validate(val);
+            if (msg) invalid[q.id] = msg;
+          }
+        });
+    });
+    return invalid;
   };
 
   const handleSubmit = async () => {
@@ -117,6 +159,7 @@ export default function FormWizard({ embedded = false, scrollSectionId }: FormWi
         for (const id of Object.keys(invalid)) next[id] = true;
         return next;
       });
+      setShowFinal(false);
       scrollToTop();
       return;
     }
@@ -132,30 +175,53 @@ export default function FormWizard({ embedded = false, scrollSectionId }: FormWi
     }
   };
 
-  const scrollToTop = () => {
-    if (embedded && scrollSectionId) {
-      document.getElementById(scrollSectionId)?.scrollIntoView({ behavior: "smooth" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const section = visibleSections[sectionIndex];
+  const totalQuestions = steps.length;
 
   return (
-    <div className={`bg-gray-50 px-4 ${embedded ? "py-4" : "min-h-screen py-8"}`}>
+    <div className={`bg-paper px-4 ${embedded ? "py-4" : "min-h-screen py-8"}`}>
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Pre-Assessment Questionnaire</h1>
-          <p className="text-sm text-gray-500">Estimated time: 7–8 minutes</p>
+        <div className="text-center mb-6">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink mb-2">
+            Pre-Assessment Questionnaire
+          </h1>
+          <div className="flex items-center justify-center gap-3 text-sm">
+            <span className="text-ink-faint">Estimated time: 7–8 minutes</span>
+            <span
+              className={`inline-flex items-center gap-1 text-xs font-medium transition-opacity duration-300 ${
+                savedFlash ? "text-pine-700 opacity-100" : "text-ink-faint opacity-70"
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {savedFlash ? "Saved" : "Auto-saved"}
+            </span>
+          </div>
         </div>
 
-        <ProgressBar sections={visibleSections} currentSection={showFinal ? visibleSections.length - 1 : sectionIndex} />
+        <ProgressBar
+          sections={visibleSections}
+          currentSection={
+            showFinal
+              ? visibleSections.length - 1
+              : steps[clampedIndex]
+                ? visibleSections.findIndex((s) => s.id === steps[clampedIndex].section.id)
+                : 0
+          }
+          currentQuestion={clampedIndex}
+          totalQuestions={totalQuestions}
+          complete={showFinal}
+        />
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <div className="bg-surface rounded-2xl border border-hairline shadow-soft p-6 md:p-8">
           {showFinal ? (
             <>
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Final Question</h2>
+              <div className="mb-6">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-clay-600">
+                  Final Step
+                </span>
+                <p className="mt-1 text-sm text-ink-faint">Almost done — review and submit.</p>
+              </div>
               <QuestionRenderer
                 question={disclaimerQuestion}
                 formData={formData}
@@ -172,26 +238,48 @@ export default function FormWizard({ embedded = false, scrollSectionId }: FormWi
               />
             </>
           ) : (
-            <>
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">{section.title}</h2>
-              {section.questions.map((question) => (
+            current && (
+              <div
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && currentQuestions.every((q) => q.type !== "textarea")) {
+                    e.preventDefault();
+                    handleNext();
+                  }
+                }}
+              >
                 <QuestionRenderer
-                  key={question.id}
-                  question={question}
+                  key={current.base.id}
+                  question={current.base}
                   formData={formData}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  error={getError(question)}
+                  error={getError(current.base)}
+                  sectionTitle={current.section.title}
+                  sectionSubtitle={current.section.subtitle}
+                  standalone
                 />
-              ))}
-            </>
+                {current.followUps
+                  .filter((q) => isNodeVisible(q, formData))
+                  .map((q) => (
+                    <div key={q.id} className="mt-6">
+                      <QuestionRenderer
+                        question={q}
+                        formData={formData}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={getError(q)}
+                      />
+                    </div>
+                  ))}
+              </div>
+            )
           )}
 
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
-            {(sectionIndex > 0 || showFinal) && (
+          <div className="flex justify-between mt-8 pt-6 border-t border-hairline">
+            {(clampedIndex > 0 || showFinal) && (
               <button
                 onClick={handleBack}
-                className="px-6 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="px-6 py-2.5 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
               >
                 Back
               </button>
@@ -202,16 +290,16 @@ export default function FormWizard({ embedded = false, scrollSectionId }: FormWi
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="px-8 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-8 py-2.5 text-sm font-medium text-white bg-pine-900 rounded-lg hover:bg-pine-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               ) : (
                 <button
                   onClick={handleNext}
-                  className="px-8 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                  className="px-8 py-2.5 text-sm font-medium text-white bg-pine-900 rounded-lg hover:bg-pine-700 transition-colors"
                 >
-                  {currentSection === visibleSections.length - 1 ? "Continue" : "Next"}
+                  {clampedIndex === steps.length - 1 ? "Continue" : "Next"}
                 </button>
               )}
             </div>

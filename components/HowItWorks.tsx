@@ -20,15 +20,15 @@ const steps = [
 export default function HowItWorks() {
   return (
     <section id="how-it-works">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28">
         <div className="max-w-3xl mx-auto text-center">
-          <span className="text-sm font-semibold text-emerald-600 uppercase tracking-wide">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-clay-600">
             How It Works
           </span>
-          <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-gray-900">
+          <h2 className="mt-3 font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
             From first click to first session
           </h2>
-          <p className="mt-4 text-lg text-gray-500 leading-relaxed">
+          <p className="mt-4 text-lg text-ink-soft leading-relaxed">
             A clear, guided path from understanding where you are to getting the care you need.
           </p>
         </div>
@@ -37,13 +37,13 @@ export default function HowItWorks() {
           {steps.map((step, index) => (
             <div
               key={step.title}
-              className="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-8"
+              className="relative bg-surface rounded-xl border border-hairline shadow-soft p-8"
             >
-              <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center mb-5">
-                <span className="text-lg font-bold text-white">{index + 1}</span>
+              <div className="w-12 h-12 bg-pine-900 rounded-full flex items-center justify-center mb-5">
+                <span className="font-display text-lg font-semibold text-white">{index + 1}</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
+              <h3 className="text-lg font-semibold text-ink mb-2">{step.title}</h3>
+              <p className="text-sm text-ink-soft leading-relaxed">{step.description}</p>
             </div>
           ))}
         </div>

@@ -15,7 +15,7 @@ export default function TextArea({ value, onChange, onBlur, placeholder }: TextA
       onBlur={onBlur}
       placeholder={placeholder}
       rows={3}
-      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-colors text-sm resize-none"
+      className="w-full px-4 py-3 rounded-lg border bg-surface border-hairline focus:border-clay-600 focus:ring-2 focus:ring-clay-600/15 outline-none transition-colors text-sm resize-none"
     />
   );
 }

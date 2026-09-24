@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f9fafb;
-  --foreground: #171717;
+  --background: #faf8f4;
+  --foreground: #1f2e29;
 }
 
 @theme inline {
@@ -10,6 +10,28 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+}
+
+@theme {
+  --color-paper: #faf8f4;
+  --color-surface: #ffffff;
+  --color-ink: #1f2e29;
+  --color-ink-soft: #5b6b64;
+  --color-ink-faint: #8a9690;
+  --color-pine-900: #1c3d33;
+  --color-pine-700: #2f5d4e;
+  --color-pine-600: #3e7060;
+  --color-pine-100: #ddebe4;
+  --color-pine-050: #eef4ef;
+  --color-clay-600: #b85c38;
+  --color-clay-500: #c96f4b;
+  --color-clay-100: #f4e3da;
+  --color-hairline: #e8e3db;
+
+  --shadow-soft: 0 2px 12px rgba(31, 46, 41, 0.06);
+  --shadow-soft-lg: 0 8px 30px rgba(31, 46, 41, 0.08);
+  --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 body {
@@ -28,7 +50,7 @@ input[type="range"] {
   appearance: none;
   height: 8px;
   border-radius: 4px;
-  background: #e5e7eb;
+  background: var(--color-hairline);
   outline: none;
 }
 
@@ -38,18 +60,18 @@ input[type="range"]::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #059669;
+  background: var(--color-clay-600);
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px var(--shadow-thumb);
 }
 
 input[type="range"]::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #059669;
+  background: var(--color-clay-600);
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px var(--shadow-thumb);
 }

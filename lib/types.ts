@@ -24,6 +24,7 @@ export interface Question {
   step?: number;
   placeholder?: string;
   description?: string;
+  validate?: (value: string | number | string[] | undefined) => string | undefined;
   dependsOn?: {
     questionId: string;
     value: string | string[];

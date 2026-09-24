@@ -24,9 +24,9 @@ export default function Slider({ value, onChange, onBlur, min, max, step }: Slid
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{min}</span>
-        <span className="text-lg font-semibold text-emerald-600">{value}</span>
-        <span className="text-sm text-gray-500">{max}</span>
+        <span className="text-sm text-ink-faint">{min}</span>
+        <span className="font-display text-xl font-semibold text-clay-600">{value}</span>
+        <span className="text-sm text-ink-faint">{max}</span>
       </div>
       <input
         type="range"
@@ -36,9 +36,9 @@ export default function Slider({ value, onChange, onBlur, min, max, step }: Slid
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         onBlur={onBlur}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+        className="w-full h-2 bg-hairline rounded-lg appearance-none cursor-pointer accent-clay-600"
       />
-      <div className="text-center text-sm text-gray-500">{getLabel(value)}</div>
+      <div className="text-center text-sm text-ink-faint">{getLabel(value)}</div>
     </div>
   );
 }

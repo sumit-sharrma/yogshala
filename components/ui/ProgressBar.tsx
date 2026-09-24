@@ -1,38 +1,39 @@
 "use client";
 
 interface ProgressBarProps {
-  sections: { id: string; title: string }[];
+  sections: { id: string; title: string; subtitle?: string }[];
   currentSection: number;
+  currentQuestion: number;
+  totalQuestions: number;
+  complete?: boolean;
 }
 
-export default function ProgressBar({ sections, currentSection }: ProgressBarProps) {
-  const progress = ((currentSection + 1) / sections.length) * 100;
+export default function ProgressBar({
+  sections,
+  currentSection,
+  currentQuestion,
+  totalQuestions,
+  complete = false,
+}: ProgressBarProps) {
+  const percent = complete
+    ? 100
+    : Math.round(((currentQuestion + 1) / totalQuestions) * 100);
 
   return (
     <div className="w-full mb-8">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-700">
-          {sections[currentSection].title}
+      <div className="flex items-baseline justify-between mb-2 gap-3">
+        <span className="text-sm font-medium text-ink truncate">
+          {complete ? "Review & submit" : `Section ${currentSection + 1} of ${sections.length}`}
         </span>
-        <span className="text-sm text-gray-500">
-          {currentSection + 1} of {sections.length}
+        <span className="text-sm text-ink-faint shrink-0">
+          {complete ? `${sections.length} sections` : `Question ${currentQuestion + 1} of ${totalQuestions}`}
         </span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-hairline rounded-full h-1.5 overflow-hidden">
         <div
-          className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
+          className="h-full bg-pine-700 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${percent}%` }}
         />
-      </div>
-      <div className="flex justify-between mt-2">
-        {sections.map((section, index) => (
-          <div
-            key={section.id}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index <= currentSection ? "bg-emerald-600" : "bg-gray-300"
-            }`}
-          />
-        ))}
       </div>
     </div>
   );

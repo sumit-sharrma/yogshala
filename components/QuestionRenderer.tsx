@@ -15,22 +15,51 @@ interface QuestionRendererProps {
   formData: FormData;
   onChange: (id: string, value: string | number | string[]) => void;
   onBlur?: (id: string) => void;
+  onEnter?: () => void;
   error?: string;
+  sectionTitle?: string;
+  sectionSubtitle?: string;
+  standalone?: boolean;
 }
 
 function isQuestionVisible(question: Question, formData: FormData): boolean {
   return isNodeVisible(question, formData);
 }
 
-export default function QuestionRenderer({ question, formData, onChange, onBlur, error }: QuestionRendererProps) {
+export default function QuestionRenderer({
+  question,
+  formData,
+  onChange,
+  onBlur,
+  onEnter,
+  error,
+  sectionTitle,
+  sectionSubtitle,
+  standalone = false,
+}: QuestionRendererProps) {
   if (!isQuestionVisible(question, formData)) return null;
 
   const currentValue = formData[question.id];
   const blur = () => onBlur?.(question.id);
 
+  const labelClass = standalone
+    ? "block font-display text-lg font-semibold tracking-tight text-ink mb-2.5"
+    : "block text-sm font-medium text-ink mb-2.5";
+
   return (
-    <div className="mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+    <div className={standalone ? "mb-8" : "mb-6"}>
+      {standalone && sectionTitle && (
+        <div className="mb-8">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-clay-600">
+            {sectionTitle}
+          </span>
+          {sectionSubtitle && (
+            <p className="mt-1 text-sm text-ink-faint">{sectionSubtitle}</p>
+          )}
+        </div>
+      )}
+
+      <label className={labelClass}>
         {question.label}
         {question.required && <span className="text-red-500 ml-1">*</span>}
       </label>
@@ -41,6 +70,8 @@ export default function QuestionRenderer({ question, formData, onChange, onBlur,
           onChange={(v) => onChange(question.id, v)}
           onBlur={blur}
           placeholder={question.placeholder}
+          autoFocus={standalone}
+          onEnter={onEnter}
         />
       )}
 
@@ -58,8 +89,10 @@ export default function QuestionRenderer({ question, formData, onChange, onBlur,
           value={(currentValue as number)?.toString() || ""}
           onChange={(v) => onChange(question.id, Number(v))}
           onBlur={blur}
+          onEnter={onEnter}
           type="number"
           placeholder={question.placeholder}
+          autoFocus={standalone}
         />
       )}
 
@@ -98,13 +131,15 @@ export default function QuestionRenderer({ question, formData, onChange, onBlur,
           value={(currentValue as string) || ""}
           onChange={(v) => onChange(question.id, v)}
           onBlur={blur}
+          autoFocus={standalone}
+          onEnter={onEnter}
         />
       )}
 
       {question.type === "agree" && (
         <div>
           {question.description && (
-            <div className="max-h-48 overflow-y-auto bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-xs text-gray-600 whitespace-pre-line leading-relaxed">
+            <div className="max-h-48 overflow-y-auto bg-paper border border-hairline rounded-lg p-4 mb-4 text-xs text-ink-soft whitespace-pre-line leading-relaxed">
               {question.description}
             </div>
           )}
