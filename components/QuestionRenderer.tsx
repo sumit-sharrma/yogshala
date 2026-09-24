@@ -1,12 +1,14 @@
 "use client";
 
 import { Question, FormData } from "@/lib/types";
+import { isNodeVisible } from "@/lib/visibility";
 import RadioGroup from "./ui/RadioGroup";
 import MultiSelect from "./ui/MultiSelect";
 import Slider from "./ui/Slider";
 import TextInput from "./ui/TextInput";
 import TextArea from "./ui/TextArea";
 import DatePicker from "./ui/DatePicker";
+import Agreement from "./ui/Agreement";
 
 interface QuestionRendererProps {
   question: Question;
@@ -17,23 +19,7 @@ interface QuestionRendererProps {
 }
 
 function isQuestionVisible(question: Question, formData: FormData): boolean {
-  if (!question.dependsOn) return true;
-
-  const { questionId, value } = question.dependsOn;
-  const answer = formData[questionId];
-
-  if (Array.isArray(answer)) {
-    if (Array.isArray(value)) {
-      return value.some((v) => answer.includes(v));
-    }
-    return answer.includes(value);
-  }
-
-  if (Array.isArray(value)) {
-    return value.includes(answer as string);
-  }
-
-  return answer === value;
+  return isNodeVisible(question, formData);
 }
 
 export default function QuestionRenderer({ question, formData, onChange, onBlur, error }: QuestionRendererProps) {
@@ -113,6 +99,23 @@ export default function QuestionRenderer({ question, formData, onChange, onBlur,
           onChange={(v) => onChange(question.id, v)}
           onBlur={blur}
         />
+      )}
+
+      {question.type === "agree" && (
+        <div>
+          {question.description && (
+            <div className="max-h-48 overflow-y-auto bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-xs text-gray-600 whitespace-pre-line leading-relaxed">
+              {question.description}
+            </div>
+          )}
+          <Agreement
+            name={question.id}
+            options={question.options}
+            value={(currentValue as string) || ""}
+            onChange={(v) => onChange(question.id, v)}
+            onBlur={blur}
+          />
+        </div>
       )}
 
       {error && (

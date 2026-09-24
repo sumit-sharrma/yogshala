@@ -4,10 +4,10 @@ A Next.js multi-step form for collecting pre-assessment information from clients
 
 ## Features
 
-- **40 questions** across 7 sections with progress tracking
+- **39 questions** across 9 sections with progress tracking
 - **Auto-save** to browser localStorage — users can leave and resume later
-- **Conditional logic** — injury history and deadline questions show only when relevant
-- **Sliders** for pain severity (0–10) and commitment (1–10)
+- **Conditional logic** — neck/shoulder/back/knee quick questions appear only when that body area is selected
+- **Sliders** for pain level (0–10)
 - **Mobile-responsive** design for clients on phones
 - **Google Sheets integration** — responses are stored in a Google Sheet via Apps Script
 

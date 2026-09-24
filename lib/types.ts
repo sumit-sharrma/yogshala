@@ -5,7 +5,8 @@ export type QuestionType =
   | "single-select"
   | "multi-select"
   | "slider"
-  | "date";
+  | "date"
+  | "agree";
 
 export interface QuestionOption {
   label: string;
@@ -22,7 +23,12 @@ export interface Question {
   max?: number;
   step?: number;
   placeholder?: string;
+  description?: string;
   dependsOn?: {
+    questionId: string;
+    value: string | string[];
+  };
+  hideWhen?: {
     questionId: string;
     value: string | string[];
   };
@@ -33,6 +39,10 @@ export interface FormSection {
   title: string;
   subtitle?: string;
   questions: Question[];
+  dependsOn?: {
+    questionId: string;
+    value: string | string[];
+  };
 }
 
 export type FormData = Record<string, string | number | string[]>;

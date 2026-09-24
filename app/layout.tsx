@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yog Shala — Pre-Assessment Questionnaire",
-  description: "Complete your pre-assessment questionnaire before your posture and movement evaluation.",
+  title: "Yog Shala — Move Better. Feel Better. Live Better.",
+  description:
+    "Personalized posture assessment and movement care at Yog Shala. Begin with a short pre-assessment questionnaire, then get a session tailored to your body and goals.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
