@@ -67,12 +67,12 @@ export function StepSessionIllustration() {
       <circle cx="138" cy="92" r="6" className="fill-clay-500 pulse-dot" />
       {/* Person */}
       <g className="floaty" style={{ transformOrigin: "100px 120px" }}>
-        <circle cx="100" cy="56" r="13" className="fill-pine-900" />
-        <path d="M100 72 L100 108" className="stroke-pine-900" strokeWidth="7" {...stroke} />
-        <path d="M100 78 L70 94" className="stroke-pine-900" strokeWidth="7" {...stroke} />
-        <path d="M100 78 L130 62" className="draw-delay stroke-clay-600" strokeWidth="6" strokeDasharray={120} {...stroke} />
-        <path d="M100 112 L78 138" className="stroke-pine-900" strokeWidth="7" {...stroke} />
-        <path d="M100 112 L122 136" className="stroke-pine-900" strokeWidth="7" {...stroke} />
+        <circle cx="100" cy="56" r="13" className="fill-pine-050 stroke-pine-600" strokeWidth="2.5" />
+        <path d="M100 72 L100 108" className="stroke-pine-600" strokeWidth="3" {...stroke} />
+        <path d="M100 78 L70 94" className="stroke-pine-600" strokeWidth="3" {...stroke} />
+        <path d="M100 78 L130 62" className="draw-delay stroke-clay-600" strokeWidth="3" strokeDasharray={120} {...stroke} />
+        <path d="M100 112 L78 138" className="stroke-pine-600" strokeWidth="3" {...stroke} />
+        <path d="M100 112 L122 136" className="stroke-pine-600" strokeWidth="3" {...stroke} />
       </g>
     </svg>
   );
@@ -100,7 +100,7 @@ export function StepPlanIllustration() {
       <circle cx="54" cy="134" r="7" className="fill-clay-500 pulse-dot" />
       {/* Goal flag */}
       <g className="floaty" style={{ transformOrigin: "150px 40px" }}>
-        <path d="M150 24 L150 56" className="stroke-pine-900" strokeWidth="5" {...stroke} />
+        <path d="M150 24 L150 56" className="stroke-pine-600" strokeWidth="3" {...stroke} />
         <path d="M150 24 L172 32 L150 42" className="fill-clay-600" />
       </g>
       {/* Checkpoints */}

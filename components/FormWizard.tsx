@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { FormData, Question, FormSection } from "@/lib/types";
 import { formSections, disclaimerQuestion, finalQuestion } from "@/lib/formSchema";
 import { isNodeVisible } from "@/lib/visibility";
 import { submitForm } from "@/lib/submitForm";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { trackEvent } from "@/components/Analytics";
 import ProgressBar from "./ui/ProgressBar";
 import QuestionRenderer from "./QuestionRenderer";
 
 interface FormWizardProps {
   embedded?: boolean;
   scrollSectionId?: string;
+  onBack?: () => void;
 }
 
 type Step = {
@@ -21,7 +23,7 @@ type Step = {
   followUps: Question[];
 };
 
-export default function FormWizard({ embedded = false, scrollSectionId }: FormWizardProps) {
+export default function FormWizard({ embedded = false, scrollSectionId, onBack }: FormWizardProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [formData, setFormData] = useState<FormData>({});
@@ -30,6 +32,9 @@ export default function FormWizard({ embedded = false, scrollSectionId }: FormWi
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [savedFlash, setSavedFlash] = useState(false);
   const saveFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const progressRef = useRef(0);
+  const submittedRef = useRef(false);
 
   const { clearSaved } = useAutoSave(formData, setFormData);
 
@@ -43,26 +48,29 @@ export default function FormWizard({ embedded = false, scrollSectionId }: FormWi
   const handleBlur = useCallback((id: string) => {
     setTouched((prev) => ({ ...prev, [id]: true }));
   }, []);
-const visibleSections = formSections.filter((s) => isNodeVisible(s, formData));
+const visibleSections = useMemo(() => formSections.filter((s) => isNodeVisible(s, formData)), [formData]);
 
-  const steps: Step[] = [];
-  for (const section of visibleSections) {
-    for (const q of section.questions) {
-      if (!isNodeVisible(q, formData)) continue;
+  const steps = useMemo<Step[]>(() => {
+    const result: Step[] = [];
+    for (const section of visibleSections) {
+      for (const q of section.questions) {
+        if (!isNodeVisible(q, formData)) continue;
 
-      const dep = q.dependsOn?.questionId;
-      if (dep) {
-        const target = steps.find((s) => s.base.id === dep);
-        if (target) {
-          target.followUps.push(q);
+        const dep = q.dependsOn?.questionId;
+        if (dep) {
+          const target = result.find((s) => s.base.id === dep);
+          if (target) {
+            target.followUps.push(q);
+          } else {
+            result.push({ base: q, section, followUps: [] });
+          }
         } else {
-          steps.push({ base: q, section, followUps: [] });
+          result.push({ base: q, section, followUps: [] });
         }
-      } else {
-        steps.push({ base: q, section, followUps: [] });
       }
     }
-  }
+    return result;
+  }, [visibleSections, formData]);
   const clampedIndex = Math.min(stepIndex, Math.max(steps.length - 1, 0));
   const current = steps[clampedIndex];
   const currentQuestions = current ? [current.base, ...current.followUps] : [];
@@ -130,6 +138,40 @@ const visibleSections = formSections.filter((s) => isNodeVisible(s, formData));
     };
   }, []);
 
+  // Funnel: questionnaire started (once per session as embedded survives re-mounts)
+  const mountedRef = useRef(false);
+  const abandonSentRef = useRef(false);
+  useEffect(() => {
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+    trackEvent("form_started");
+
+    const sendAbandon = () => {
+      if (submittedRef.current || abandonSentRef.current) return;
+      abandonSentRef.current = true;
+      trackEvent("form_abandoned", { progressPct: progressRef.current });
+    };
+    window.addEventListener("pagehide", sendAbandon);
+
+    return () => {
+      window.removeEventListener("pagehide", sendAbandon);
+      sendAbandon();
+    };
+  }, []);
+
+  // Funnel: reaching each section + progress for abandon analysis
+  useEffect(() => {
+    progressRef.current = Math.round((clampedIndex / Math.max(steps.length, 1)) * 100);
+    if (showFinal) {
+      trackEvent("form_review");
+      return;
+    }
+    const step = steps[clampedIndex];
+    if (step) {
+      trackEvent("form_section", { section: step.section.id, index: clampedIndex, total: steps.length });
+    }
+  }, [clampedIndex, showFinal, steps]);
+
   const validateAllVisible = () => {
     const invalid: Record<string, string> = {};
     steps.forEach(({ base, followUps }) => {
@@ -167,6 +209,8 @@ const visibleSections = formSections.filter((s) => isNodeVisible(s, formData));
     setIsSubmitting(true);
     const success = await submitForm(formData);
     if (success) {
+      submittedRef.current = true;
+      trackEvent("form_submitted");
       clearSaved();
       router.push("/thank-you");
     } else {
@@ -178,7 +222,7 @@ const visibleSections = formSections.filter((s) => isNodeVisible(s, formData));
   const totalQuestions = steps.length;
 
   return (
-    <div className={`bg-paper px-4 ${embedded ? "py-4" : "min-h-screen py-8"}`}>
+    <div className={`bg-paper px-4 ${embedded ? "py-8" : "min-h-screen py-8"}`}>
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-ink mb-2">
@@ -276,16 +320,24 @@ const visibleSections = formSections.filter((s) => isNodeVisible(s, formData));
           )}
 
           <div className="flex justify-between mt-8 pt-6 border-t border-hairline">
-            {(clampedIndex > 0 || showFinal) && (
+            {onBack && (
               <button
-                onClick={handleBack}
-                className="px-6 py-2.5 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
+                onClick={onBack}
+                className="px-6 py-2.5 text-sm font-medium text-pine-700 bg-white rounded-lg border border-pine-100 hover:bg-pine-050 transition-colors"
               >
-                Back
+                Back to intro
               </button>
             )}
 
-            <div className="ml-auto">
+            <div className="flex items-center gap-3 ml-auto">
+              {(clampedIndex > 0 || showFinal) && (
+                <button
+                  onClick={handleBack}
+                  className="px-6 py-2.5 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
+                >
+                  Back
+                </button>
+              )}
               {showFinal ? (
                 <button
                   onClick={handleSubmit}
