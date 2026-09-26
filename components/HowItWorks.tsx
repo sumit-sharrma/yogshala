@@ -1,25 +1,58 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import {
+  StepAssessIllustration,
+  StepReviewIllustration,
+  StepSessionIllustration,
+  StepPlanIllustration,
+} from "./ui/StepIllustrations";
+
 const steps = [
   {
     title: "Complete the pre-assessment",
     description: "Answer a short questionnaire about your posture, pain, activity, and goals. It takes about 7–8 minutes and saves automatically.",
+    Illustration: StepAssessIllustration,
   },
   {
     title: "We review your responses",
     description: "Your answers help us prepare and focus the session on what matters most to you before you arrive.",
+    Illustration: StepReviewIllustration,
   },
   {
     title: "In-person assessment session",
     description: "We evaluate your posture, range of motion, and movement patterns together, in comfortable clothing.",
+    Illustration: StepSessionIllustration,
   },
   {
     title: "Get your personalized plan",
     description: "Walk away with clear guidance and a practice tailored to your body, with follow-up as you progress.",
+    Illustration: StepPlanIllustration,
   },
 ];
 
 export default function HowItWorks() {
+  const ref = useRef<HTMLElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="how-it-works">
+    <section id="how-it-works" ref={ref} className={inView ? "in-view" : ""}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28">
         <div className="max-w-3xl mx-auto text-center">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-clay-600">
@@ -37,13 +70,18 @@ export default function HowItWorks() {
           {steps.map((step, index) => (
             <div
               key={step.title}
-              className="relative bg-surface rounded-xl border border-hairline shadow-soft p-8"
+              className="relative bg-surface rounded-xl border border-hairline shadow-soft p-8 pt-10"
             >
-              <div className="w-12 h-12 bg-pine-900 rounded-full flex items-center justify-center mb-5">
-                <span className="font-display text-lg font-semibold text-white">{index + 1}</span>
+              <div className="absolute top-4 right-4 w-7 h-7 bg-pine-050 rounded-full flex items-center justify-center">
+                <span className="text-xs font-semibold text-pine-700">{index + 1}</span>
               </div>
-              <h3 className="text-lg font-semibold text-ink mb-2">{step.title}</h3>
-              <p className="text-sm text-ink-soft leading-relaxed">{step.description}</p>
+              <div className="w-24 h-24 mx-auto mb-6 step-icon">
+                <step.Illustration />
+              </div>
+              <h3 className="text-lg font-semibold text-ink mb-2 text-center">{step.title}</h3>
+              <p className="text-sm text-ink-soft leading-relaxed text-center">
+                {step.description}
+              </p>
             </div>
           ))}
         </div>
