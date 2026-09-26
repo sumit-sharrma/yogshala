@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Analytics } from "@vercel/analytics/next";
-import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 
 const SCROLL_DEPTHS = [25, 50, 75, 100];
 
@@ -22,8 +21,13 @@ function detectDevice(): Device {
 
 const device: Device = typeof window === "undefined" ? "desktop" : detectDevice();
 
+function isPostHogReady() {
+  return typeof posthog.capture === "function";
+}
+
 export function trackEvent(name: string, properties?: Record<string, string | number | boolean | null>) {
-  track(name, { ...properties, device });
+  if (!isPostHogReady()) return;
+  posthog.capture(name, { ...properties, device });
 }
 
 function describeTarget(el: Element | null): string {
@@ -84,5 +88,5 @@ export default function AnalyticsProvider() {
     };
   }, []);
 
-  return <Analytics />;
+  return null;
 }

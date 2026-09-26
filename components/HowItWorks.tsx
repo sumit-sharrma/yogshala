@@ -70,13 +70,13 @@ export default function HowItWorks() {
           {steps.map((step, index) => (
             <div
               key={step.title}
-              className="relative bg-surface rounded-xl border border-hairline shadow-soft p-8 pt-10"
+              className="relative bg-surface rounded-xl border border-hairline shadow-soft p-8"
             >
-              <div className="absolute top-4 right-4 w-7 h-7 bg-pine-050 rounded-full flex items-center justify-center">
-                <span className="text-xs font-semibold text-pine-700">{index + 1}</span>
-              </div>
-              <div className="w-24 h-24 mx-auto mb-6 step-icon">
+              <div className="w-24 h-24 mx-auto mb-4 step-icon">
                 <step.Illustration />
+              </div>
+              <div className="w-9 h-9 mx-auto mb-6 bg-pine-050 rounded-full flex items-center justify-center">
+                <span className="text-base font-semibold text-pine-700">{index + 1}</span>
               </div>
               <h3 className="text-lg font-semibold text-ink mb-2 text-center">{step.title}</h3>
               <p className="text-sm text-ink-soft leading-relaxed text-center">

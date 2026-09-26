@@ -320,7 +320,7 @@ const visibleSections = useMemo(() => formSections.filter((s) => isNodeVisible(s
           )}
 
           <div className="flex justify-between mt-8 pt-6 border-t border-hairline">
-            {onBack && (
+            {onBack && clampedIndex === 0 && !showFinal && (
               <button
                 onClick={onBack}
                 className="px-6 py-2.5 text-sm font-medium text-pine-700 bg-white rounded-lg border border-pine-100 hover:bg-pine-050 transition-colors"
