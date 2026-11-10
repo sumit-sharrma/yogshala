@@ -53,12 +53,12 @@ export default function HowItWorks() {
 
   return (
     <section id="how-it-works" ref={ref} className={inView ? "in-view" : ""}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28">
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
         <div className="max-w-3xl mx-auto text-center">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-clay-600">
             How It Works
           </span>
-          <h2 className="mt-3 font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
+          <h2 className="mt-3 font-display text-fluid-h2 font-semibold tracking-tight text-ink">
             From first click to first session
           </h2>
           <p className="mt-4 text-lg text-ink-soft leading-relaxed">
@@ -66,7 +66,7 @@ export default function HowItWorks() {
           </p>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {steps.map((step, index) => (
             <div
               key={step.title}
@@ -78,8 +78,8 @@ export default function HowItWorks() {
               <div className="w-9 h-9 mx-auto mb-6 bg-pine-050 rounded-full flex items-center justify-center">
                 <span className="text-base font-semibold text-pine-700">{index + 1}</span>
               </div>
-              <h3 className="text-lg font-semibold text-ink mb-2 text-center">{step.title}</h3>
-              <p className="text-sm text-ink-soft leading-relaxed text-center">
+              <h3 className="text-fluid-h3 font-semibold text-ink mb-2 text-center">{step.title}</h3>
+              <p className="text-fluid-small text-ink-soft leading-relaxed text-center">
                 {step.description}
               </p>
             </div>

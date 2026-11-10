@@ -30,8 +30,7 @@ const trustPoints = [
   },
 ];
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1695795634692-567cec15ad95?auto=format&fit=crop&w=2400&q=80";
+const HERO_IMAGE = "/images/hero.jpeg";
 
 export default function Hero() {
   return (
@@ -41,17 +40,16 @@ export default function Hero() {
         <div className="absolute inset-0 -z-10">
           <Image
             src={HERO_IMAGE}
-            alt=""
+            alt="Yoga studio hero section"
             fill
             priority
             sizes="100vw"
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/60 to-ink/25" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-ink/30" />
+          <div className="absolute inset-0 bg-ink/30 backdrop-blur-[3px]" />
         </div>
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-24 pb-16 sm:pb-20 w-full">
+        <div className="relative max-w-[1120px] mx-auto px-4 sm:px-6 pt-24 pb-16 sm:pb-20 w-full">
           <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-sm text-white font-medium">
             <svg className="w-4 h-4 text-clay-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -59,14 +57,14 @@ export default function Hero() {
             Personalized posture & movement care
           </span>
 
-          <h1 className="mt-6 font-display text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05] text-white">
-            Move better.
+          <h1 className="mt-6 font-display text-fluid-hero font-semibold tracking-tight leading-[1.05] text-white">
+            Understand Your Body.
             <br />
-            <span className="text-clay-400">Feel better.</span> Live better.
+            <span className="text-clay-400">Move With Purpose.</span> Live With Ease.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg sm:text-xl text-white/80 leading-relaxed">
-            Yog Shala combines modern posture science with the practice of yoga to help you
+          <p className="mt-6 max-w-2xl text-fluid-body text-white/80 leading-relaxed">
+            Sthiram Yoga Shala combines functional movements with traditional yoga to help you
             understand your body, correct movement patterns, and build lasting alignment.
           </p>
 
@@ -89,7 +87,7 @@ export default function Hero() {
 
       {/* Separate trust strip — its own band, clearly divided from the hero */}
       <section className="border-t border-hairline bg-surface">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-10 sm:py-12">
           <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 divide-hairline sm:divide-x sm:divide-x-hairline">
             {trustPoints.map((point) => (
               <div key={point.label} className="flex items-start gap-4 px-2 py-4 sm:py-0 sm:px-8 first:pl-0 last:pr-0 sm:first:pl-0 sm:last:pr-0">

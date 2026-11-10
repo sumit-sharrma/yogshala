@@ -44,18 +44,20 @@ export default function About() {
 
   return (
     <section id="about" ref={ref} className={inView ? "in-view bg-surface border-y border-hairline" : "bg-surface border-y border-hairline"}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28">
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
         <div className="max-w-3xl mx-auto text-center">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-clay-600">
-            About Yog Shala
+            About Sthiram Yoga Shala
           </span>
-          <h2 className="mt-3 font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
-            A mindful approach to how you move
+          <h2 className="mt-3 font-display text-fluid-h2 font-semibold tracking-tight text-ink">
+            Rooted in Rishikesh. Guided by the Ganga and Himalayas.
           </h2>
-          <p className="mt-4 text-lg text-ink-soft leading-relaxed">
-            Yog Shala was founded on a simple belief: lasting change starts with awareness.
-            Our structured pre-assessment and guided sessions help you understand your body&apos;s
-            habits, uncover what limits you, and build the strength and freedom to move with ease.
+          <p className="mt-4 text-fluid-body text-ink-soft leading-relaxed">
+            Sthiram Yoga Shala, rooted in the spiritual heart of Rishikesh, is a space to
+            understand your body, deepen your breath, and cultivate inner awareness. Inspired by
+            the timeless wisdom of yoga and the quiet presence of the Ganga and Himalayas, we
+            bring together traditional Hatha Yoga, Yoga Therapy, Handstand & Arm Balancing to
+            build strength and stability, deepen awareness, and find greater ease within yourself.
           </p>
         </div>
 

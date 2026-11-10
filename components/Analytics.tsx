@@ -21,6 +21,36 @@ function detectDevice(): Device {
 
 const device: Device = typeof window === "undefined" ? "desktop" : detectDevice();
 
+let initialized = false;
+
+const INIT_FLAG = "__yog_shala_posthog_initialized";
+
+function initPostHog() {
+  const globalScope = window as unknown as Record<string, unknown>;
+  if (initialized || globalScope[INIT_FLAG]) return;
+  initialized = true;
+  globalScope[INIT_FLAG] = true;
+  try {
+    const key = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+    const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+    if (!key || !host) return;
+    posthog.init(key, {
+      api_host: "/ingest",
+      capture_pageleave: true,
+      capture_pageview: true,
+      capture_exceptions: true,
+      disable_session_recording: false,
+      person_profiles: "always",
+      debug: process.env.NEXT_PUBLIC_POSTHOG_DEBUG === "true",
+    });
+    if (process.env.NODE_ENV === "development") {
+      (window as unknown as Record<string, unknown>).posthog = posthog;
+    }
+  } catch (error) {
+    console.error("[PostHog] init failed", error);
+  }
+}
+
 function isPostHogReady() {
   return typeof posthog.capture === "function";
 }
@@ -42,6 +72,8 @@ function describeTarget(el: Element | null): string {
 
 export default function AnalyticsProvider() {
   useEffect(() => {
+    initPostHog();
+
     const onClick = (event: MouseEvent) => {
       const el = (event.target as Element | null)?.closest?.(
         'a, button, [role="button"], input, select, textarea, label'

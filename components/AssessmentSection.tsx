@@ -12,7 +12,7 @@ export default function AssessmentSection() {
 
   return (
     <section id="assessment" className="bg-surface border-y border-hairline">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28">
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
         {!started ? (
           <div key="intro" className="fade-up">
             <div className="bg-paper rounded-2xl border border-hairline shadow-soft overflow-hidden">
@@ -41,15 +41,15 @@ export default function AssessmentSection() {
                 <span className="text-xs font-semibold uppercase tracking-[0.2em] text-clay-600">
                   Begin Here
                 </span>
-                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
+                <h2 className="mt-3 font-display text-fluid-h2 font-semibold tracking-tight text-ink">
                   Pre-Assessment Questionnaire
                 </h2>
 
                 <div className="mt-10">
-                  <h3 className="font-display text-xl font-semibold text-ink mb-3">
+                  <h3 className="font-display text-fluid-h3 font-semibold text-ink mb-3">
                     Thank you for choosing Yog Shala
                   </h3>
-                  <p className="text-ink-soft mb-8 leading-relaxed">
+                  <p className="text-fluid-body text-ink-soft mb-8 leading-relaxed">
                     Please complete this questionnaire before your assessment so we can better
                     understand your posture, movement, and goals.
                   </p>

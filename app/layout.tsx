@@ -29,7 +29,7 @@ const orgJsonLd = {
     "Personalized posture assessment and movement care. Begin with a short pre-assessment questionnaire, then get a session tailored to your body and goals.",
   url: SITE_URL,
   image: `${SITE_URL}/opengraph-image`,
-  logo: `${SITE_URL}/icon.svg`,
+  logo: `${SITE_URL}/images/logo.jpeg`,
   priceRange: "$$",
   sameAs: [],
 };
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
       "Personalized posture assessment and movement care. Start with a short pre-assessment, then get a session tailored to your body and goals.",
   },
   icons: {
-    icon: "/icon.svg",
+    icon: "/images/logo.jpeg",
   },
 };
 
